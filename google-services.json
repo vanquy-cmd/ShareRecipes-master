@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1035569037819",
+    "project_id": "doprojects-f9ce1",
+    "storage_bucket": "doprojects-f9ce1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1035569037819:android:fce08fafeaf0ddafb2cb5e",
+        "android_client_info": {
+          "package_name": "com.tranquy11537.ShareRecipes"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1035569037819-c4tirclgipteeaem4bnjgt0jsocn8nl6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tranquy11537.ShareRecipes",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "1035569037819-7cjh295282vu8duivoq2189ld298k9rm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC-lYU1iCptaSP4irij2NMcMaPXhPCPMzA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1035569037819-7cjh295282vu8duivoq2189ld298k9rm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
