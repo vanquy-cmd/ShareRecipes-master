@@ -28,26 +28,57 @@ const InfoCustomer = () => {
     const [userInfo, setUserInfo] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('recipes');
+    const [followersCount, setFollowersCount] = useState(0);
+    const [followingCount, setFollowingCount] = useState(0);
+    const [recipesCount, setRecipesCount] = useState(0);
 
     useEffect(() => {
-        const unsubscribe = firestore()
-            .collection('USERS')
-            .doc(userId)
-            .onSnapshot(userDoc => {
-                if (userDoc.exists) {
-                    const data = userDoc.data();
-                    setUserInfo(data);
+        // Fetch user info, followers count, and following count
+        const fetchUserData = async () => {
+            try {
+                // Get user info
+                const userDocRef = firestore().collection('USERS').doc(userId);
+                
+                // Get followers count (người quan tâm)
+                const followersSnapshot = await userDocRef.collection('FOLLOWERS').get();
+                setFollowersCount(followersSnapshot.size);
+                
+                // Get following count (bạn bếp)
+                const followingSnapshot = await userDocRef.collection('FOLLOWING').get();
+                setFollowingCount(followingSnapshot.size);
+                
+                // Get recipes count
+                const recipesSnapshot = await firestore()
+                    .collection('RECIPES')
+                    .where('userId', '==', userId)
+                    .get();
+                setRecipesCount(recipesSnapshot.size);
+                
+                // Set up real-time listener for user info
+                const unsubscribe = userDocRef.onSnapshot(userDoc => {
+                    if (userDoc.exists) {
+                        const data = userDoc.data();
+                        setUserInfo(data);
+                        setLoading(false);
+                    } else {
+                        console.log('No such document!');
+                        setLoading(false);
+                    }
+                }, error => {
+                    console.error(error);
                     setLoading(false);
-                } else {
-                    console.log('No such document!');
-                    setLoading(false);
-                }
-            }, error => {
-                console.error(error);
+                });
+                
+                return unsubscribe;
+            } catch (error) {
+                console.error('Error fetching user data:', error);
                 setLoading(false);
-            });
+                return () => {};
+            }
+        };
 
-        return () => unsubscribe();
+        const unsubscribe = fetchUserData();
+        return () => unsubscribe;
     }, [userId]);
 
     const handleBackPress = () => {
@@ -75,6 +106,18 @@ const InfoCustomer = () => {
         } catch (error) {
             console.log(error.message);
         }
+    };
+    
+    const navigateToFollowers = () => {
+        navigation.navigate('SocialConnections', { initialTab: 'followers', userId });
+    };
+    
+    const navigateToFollowing = () => {
+        navigation.navigate('SocialConnections', { initialTab: 'following', userId });
+    };
+    
+    const navigateToRecipes = () => {
+        navigation.navigate('UserRecipes', { userId });
     };
 
     if (loading) {
@@ -139,20 +182,29 @@ const InfoCustomer = () => {
                 </View>
                 
                 <View style={styles.statsContainer}>
-                    <View style={styles.statItem}>
-                        <Text style={styles.statNumber}>0</Text>
+                    <TouchableOpacity 
+                        style={styles.statItem}
+                        onPress={navigateToRecipes}
+                    >
+                        <Text style={styles.statNumber}>{recipesCount}</Text>
                         <Text style={styles.statLabel}>Công thức</Text>
-                    </View>
+                    </TouchableOpacity>
                     <View style={styles.statDivider} />
-                    <View style={styles.statItem}>
-                        <Text style={styles.statNumber}>0</Text>
+                    <TouchableOpacity 
+                        style={styles.statItem}
+                        onPress={navigateToFollowing}
+                    >
+                        <Text style={styles.statNumber}>{followingCount}</Text>
                         <Text style={styles.statLabel}>Bạn bếp</Text>
-                    </View>
+                    </TouchableOpacity>
                     <View style={styles.statDivider} />
-                    <View style={styles.statItem}>
-                        <Text style={styles.statNumber}>0</Text>
+                    <TouchableOpacity 
+                        style={styles.statItem}
+                        onPress={navigateToFollowers}
+                    >
+                        <Text style={styles.statNumber}>{followersCount}</Text>
                         <Text style={styles.statLabel}>Người quan tâm</Text>
-                    </View>
+                    </TouchableOpacity>
                 </View>
                 
                 <TouchableOpacity 

@@ -5,6 +5,7 @@ import firestore from "@react-native-firebase/firestore";
 import auth from "@react-native-firebase/auth";
 import { NavigationContainer } from "@react-navigation/native";
 import Router from "../ShareRecipes-master/src/routers/Router";
+import { ThemeProvider } from "../ShareRecipes-master/src/customer/ThemeContext";
 import DetectObject from "./src";
 
 
@@ -55,15 +56,16 @@ const App = () => {
   }, []);
 
   return (
-    <PaperProvider>
-      <MyContextControllerProvider>
-        <NavigationContainer>
-            <Router />
-          
-        </NavigationContainer>
-      </MyContextControllerProvider>
-    </PaperProvider>
-    
+    <ThemeProvider>
+      <PaperProvider>
+        <MyContextControllerProvider>
+          <NavigationContainer>
+              <Router />
+            
+          </NavigationContainer>
+        </MyContextControllerProvider>
+      </PaperProvider>
+    </ThemeProvider>
   )
 }
 

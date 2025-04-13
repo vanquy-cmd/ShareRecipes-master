@@ -1,61 +1,91 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 
-const Notification = ({ notifications }) => {
+const Notification = ({ adminNotifications = [], friendNotifications = [] }) => {
+
     const [visible, setVisible] = useState(false);
+    const [activeTab, setActiveTab] = useState('admin');
+    const shownRef = useRef(false);
 
     useEffect(() => {
-        if (notifications.length > 0) {
+        const hasAdmin = Array.isArray(adminNotifications) && adminNotifications.length > 0;
+        const hasFriend = Array.isArray(friendNotifications) && friendNotifications.length > 0;
+    
+        if (hasAdmin || hasFriend) {
             setVisible(true);
-            const timer = setTimeout(() => setVisible(false), 5000); // Auto-hide after 5 seconds
+            const timer = setTimeout(() => setVisible(false), 5000);
             return () => clearTimeout(timer);
         }
-    }, [notifications]);
+    }, [adminNotifications, friendNotifications]);
+    
+
+    const toggleTab = (tab) => {
+        setActiveTab(tab);
+    };
+
+    const notifications = activeTab === 'admin' ? adminNotifications : friendNotifications;
+
+    if (!visible || notifications.length === 0) return null;
 
     return (
-        <div>
-            {visible && notifications.length > 0 && (
-                <div style={styles.notificationContainer}>
-                    <h4 style={styles.title}>Thông báo</h4>
-                    <ul style={styles.list}>
-                        {notifications.map((notification, index) => (
-                            <li key={index} style={styles.item}>
-                                {notification}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
-        </div>
+        <View style={styles.notificationContainer}>
+            <Text style={styles.title}>Thông báo</Text>
+            <View style={styles.tabContainer}>
+                <TouchableOpacity onPress={() => toggleTab('admin')} style={styles.tabButton(activeTab === 'admin')}>
+                    <Text style={styles.tabText}>Từ Admin</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => toggleTab('friends')} style={styles.tabButton(activeTab === 'friends')}>
+                    <Text style={styles.tabText}>Từ Bạn Bè</Text>
+                </TouchableOpacity>
+            </View>
+            <FlatList
+                data={notifications}
+                keyExtractor={(item, index) => index.toString()}
+                renderItem={({ item }) => <Text style={styles.item}>{item}</Text>}
+            />
+        </View>
     );
 };
 
-const styles = {
+const styles = StyleSheet.create({
     notificationContainer: {
-        position: 'fixed',
-        top: '10px',
-        right: '10px',
+        position: 'absolute',
+        top: 10,
+        right: 10,
         backgroundColor: '#f8d7da',
-        color: '#721c24',
-        padding: '15px',
-        borderRadius: '5px',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-        zIndex: 1000,
+        padding: 15,
+        borderRadius: 8,
+        elevation: 5,
+        maxWidth: '90%',
+        zIndex: 999,
     },
     title: {
-        margin: 0,
-        marginBottom: '10px',
-        fontSize: '16px',
+        fontSize: 16,
         fontWeight: 'bold',
+        marginBottom: 10,
+        color: '#721c24',
     },
-    list: {
-        margin: 0,
-        padding: 0,
-        listStyleType: 'none',
+    tabContainer: {
+        flexDirection: 'row',
+        marginBottom: 10,
+    },
+    tabButton: (isActive) => ({
+        flex: 1,
+        padding: 10,
+        backgroundColor: isActive ? '#e2a4a4' : '#f5c6cb',
+        borderRadius: 5,
+        marginHorizontal: 5,
+        alignItems: 'center',
+    }),
+    tabText: {
+        color: '#721c24',
+        fontWeight: '600',
     },
     item: {
-        fontSize: '14px',
-        marginBottom: '5px',
+        fontSize: 14,
+        color: '#721c24',
+        marginBottom: 5,
     },
-};
+});
 
 export default Notification;

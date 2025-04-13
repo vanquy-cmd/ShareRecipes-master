@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet  } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -24,7 +24,8 @@ import Stings from "../customer/Stings";
 import Login from "../screens/Login";
 import ForgotPassword from "../screens/ForgotPassword";
 import messageDetail from "../customer/messageDetail";
-import notification from "../customer/Notification";
+import Notification from "../customer/Notification";
+import FriendDetail from "../customer/FriendDetail";
 
 const Tab = createMaterialBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -38,8 +39,16 @@ const SearchStack = () => {
           }}
       />
       <Stack.Screen 
+        name="FriendDetail" 
+        component={FriendDetail} 
+        options={{ 
+            headerLeft: null, // Ẩn nút mũi tên quay lại
+            headerShown: false, // Ẩn tiêu đề và header
+          }}
+      />
+      <Stack.Screen 
         name="Notification" 
-        component={notification} 
+        component={Notification} 
         options={{ 
             headerLeft: null, // Ẩn nút mũi tên quay lại
             headerShown: false, // Ẩn tiêu đề và header
@@ -166,6 +175,14 @@ const WarehouseStack = () => {
   return (
     <Stack.Navigator>
       <Stack.Screen name="Kho món ngon của bạn" component={RecipeWarehouse} options={{ 
+            headerLeft: null, // Ẩn nút mũi tên quay lại
+            headerShown: false, // Ẩn tiêu đề và header
+          }}
+      />
+      <Stack.Screen 
+        name="FriendDetail" 
+        component={FriendDetail} 
+        options={{ 
             headerLeft: null, // Ẩn nút mũi tên quay lại
             headerShown: false, // Ẩn tiêu đề và header
           }}
@@ -375,7 +392,8 @@ const CustomTabBarButton = ({ children, onPress }) => {
 const Customer = () => {
   return (
       <Tab.Navigator
-        activeColor="white"
+        activeColor="#FF6B00" // Màu cam cho icon và text khi active
+        inactiveColor="#666" // Màu xám cho icon và text khi không active
         barStyle={styles.barStyle}
       >
         <Tab.Screen
@@ -394,7 +412,7 @@ const Customer = () => {
           name="Kho món ngon của bạn"
           component={WarehouseStack}
           options={{
-            tabBarLabel: 'Kho món ngon',
+            tabBarLabel: 'Kho món ngon của bạn',
             tabBarIcon:({ color }) => (
               <Icon name="book" color={color} size={26} />
             ),
@@ -419,10 +437,16 @@ const Customer = () => {
 
 const styles = StyleSheet.create({
   barStyle: {
-    backgroundColor: '#4CAF50', // Màu cam cho thanh tab
+    backgroundColor: '#FFFFFF', // Đổi màu cam thành màu trắng
+    borderTopWidth: 1,
+    borderTopColor: '#EEEEEE', // Thêm đường viền nhẹ ở trên để tạo sự phân cách
     borderRadius: 20, // Bo tròn góc trái
     overflow: 'hidden', // Đảm bảo không có chỉ số lồi ra ngoài
-    elevation: 20, // Tạo bóng cho thanh tab
+    elevation: 10, // Giảm độ đổ bóng
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   customButton: {
     top: -20, // Nâng nút lên để nằm ở giữa
@@ -431,10 +455,12 @@ const styles = StyleSheet.create({
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: '#fff', // Nền trắng cho nút chính
+    backgroundColor: '#fff', // Giữ nền trắng cho nút chính
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 8, // Đổ bóng cho nút
+    borderWidth: 1,
+    borderColor: '#EEEEEE', // Thêm viền nhẹ
   },
 });
 

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~3.2.3",
+    "@react-native-async-storage/async-storage": "^1.24.0",
     "@react-native-community/blur": "^4.4.1",
     "@react-native-firebase/app": "21.12.0",
     "@react-native-firebase/auth": "21.12.0",
@@ -19,8 +20,10 @@
     "@react-navigation/material-bottom-tabs": "^6.2.29",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/stack": "^6.4.1",
+    "@types/react": "~18.2.79",
     "axios": "^1.7.9",
     "expo": "~51.0.28",
+    "expo-crypto": "~13.0.2",
     "expo-file-system": "~17.0.1",
     "expo-image-picker": "~15.1.0",
     "expo-status-bar": "~1.12.1",
@@ -41,6 +44,7 @@
     "react-native-swipe-list-view": "^3.2.9",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "^0.19.12",
+    "typescript": "~5.3.3",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

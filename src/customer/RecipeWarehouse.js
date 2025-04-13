@@ -11,18 +11,20 @@ import {
   ActivityIndicator,
   StatusBar,
   Dimensions,
-  ScrollView
+  ScrollView,
+  SafeAreaView,
+  Platform
 } from 'react-native';
 import { IconButton, Searchbar } from 'react-native-paper';
 import { useMyContextController } from "../store";
 import { useNavigation } from '@react-navigation/native';
 import firestore from '@react-native-firebase/firestore';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { BlurView } from '@react-native-community/blur';
 import LinearGradient from 'react-native-linear-gradient';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.85;
+const STATUS_BAR_HEIGHT = Platform.OS === 'ios' ? 44 : StatusBar.currentHeight || 0;
 
 const RecipeStorageScreen = () => {
     const [controller] = useMyContextController();
@@ -40,11 +42,6 @@ const RecipeStorageScreen = () => {
 
     // Animation values
     const scrollY = useRef(new Animated.Value(0)).current;
-    const headerOpacity = scrollY.interpolate({
-      inputRange: [0, 500],
-      outputRange: [0, 100],
-      extrapolate: 'clamp',
-    });
 
     const toggleDrawer = () => {
         setIsDrawerOpen(!isDrawerOpen);
@@ -140,13 +137,13 @@ const RecipeStorageScreen = () => {
                     transform: [{ 
                         scale: scrollY.interpolate({
                             inputRange: [-100, 0, 100 * index, 100 * (index + 2)],
-                            outputRange: [1, 1, 1, 0.9],
+                            outputRange: [1, 1, 1, 0.95],
                             extrapolate: 'clamp'
                         }) 
                     }],
                     opacity: scrollY.interpolate({
                         inputRange: [100 * (index - 1), 100 * index, 100 * (index + 1)],
-                        outputRange: [1, 1, 0.5],
+                        outputRange: [1, 1, 0.7],
                         extrapolate: 'clamp'
                     })
                 }
@@ -235,156 +232,165 @@ const RecipeStorageScreen = () => {
 
     if (loading) {
         return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#FF6B00" />
-                <Text style={styles.loadingText}>Đang tải dữ liệu...</Text>
-            </View>
+            <SafeAreaView style={styles.safeArea}>
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#FF6B00" />
+                    <Text style={styles.loadingText}>Đang tải dữ liệu...</Text>
+                </View>
+            </SafeAreaView>
         );
     }
 
     return (
-        <View style={styles.container}>
-            <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
-            
-            
-            {/* Main Header */}
-            <View style={styles.header}>
-                <TouchableWithoutFeedback onPress={toggleDrawer}>
-                    <Image
-                        source={{ uri: userInfo?.imageUri }}
-                        style={styles.avatar}
-                    />
-                </TouchableWithoutFeedback>
-                <Text style={styles.headerTitle}>Kho món ngon</Text>
-                <IconButton
-                    icon="bell-outline"
-                    size={24}
-                    color="#333"
-                    onPress={() => console.log('Thông báo')}
-                />
-            </View>
-            
-            {/* Search Bar */}
-            <View style={styles.searchContainer}>
-                <Searchbar
-                    placeholder="Tìm kiếm công thức..."
-                    onChangeText={onChangeSearch}
-                    value={searchQuery}
-                    style={styles.searchBar}
-                    inputStyle={styles.searchInput}
-                    iconColor="#777"
-                />
-            </View>
-            
-            {/* Category Tabs */}
-            <View style={styles.tabsContainer}>
-                <TouchableOpacity 
-                    style={[styles.tab, activeTab === 'all' && styles.activeTab]}
-                    onPress={() => setActiveTab('all')}
-                >
-                    <Text style={[styles.tabText, activeTab === 'all' && styles.activeTabText]}>
-                        Tất cả
-                    </Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                    style={[styles.tab, activeTab === 'favorite' && styles.activeTab]}
-                    onPress={() => setActiveTab('favorite')}
-                >
-                    <Text style={[styles.tabText, activeTab === 'favorite' && styles.activeTabText]}>
-                        Yêu thích
-                    </Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                    style={[styles.tab, activeTab === 'recent' && styles.activeTab]}
-                    onPress={() => setActiveTab('recent')}
-                >
-                    <Text style={[styles.tabText, activeTab === 'recent' && styles.activeTabText]}>
-                        Gần đây
-                    </Text>
-                </TouchableOpacity>
-            </View>
-            
-            {/* Recipe List */}
-            {filteredRecipes.length > 0 ? (
-                <Animated.FlatList
-                    data={filteredRecipes}
-                    renderItem={renderRecipeItem}
-                    keyExtractor={item => item.id}
-                    contentContainerStyle={styles.listContainer}
-                    showsVerticalScrollIndicator={false}
-                    onScroll={Animated.event(
-                        [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                        { useNativeDriver: false }
+        <>
+            <StatusBar backgroundColor="transparent" translucent barStyle="dark-content" />
+            <SafeAreaView style={styles.safeArea}>
+                <View style={styles.container}>
+                    {/* Main Header */}
+                    <View style={styles.header}>
+                        <TouchableWithoutFeedback onPress={toggleDrawer}>
+                            <Image
+                                source={{ uri: userInfo?.imageUri }}
+                                style={styles.avatar}
+                            />
+                        </TouchableWithoutFeedback>
+                        <Text style={styles.headerTitle}>Kho món ngon</Text>
+                        <IconButton
+                            icon="bell-outline"
+                            size={24}
+                            color="#333"
+                            onPress={() => console.log('Thông báo')}
+                        />
+                    </View>
+                    
+                    {/* Search Bar */}
+                    <View style={styles.searchContainer}>
+                        <Searchbar
+                            placeholder="Tìm kiếm công thức..."
+                            onChangeText={onChangeSearch}
+                            value={searchQuery}
+                            style={styles.searchBar}
+                            inputStyle={styles.searchInput}
+                            iconColor="#777"
+                        />
+                    </View>
+                    
+                    {/* Category Tabs */}
+                    <View style={styles.tabsContainer}>
+                        <TouchableOpacity 
+                            style={[styles.tab, activeTab === 'all' && styles.activeTab]}
+                            onPress={() => setActiveTab('all')}
+                        >
+                            <Text style={[styles.tabText, activeTab === 'all' && styles.activeTabText]}>
+                                Tất cả
+                            </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            style={[styles.tab, activeTab === 'favorite' && styles.activeTab]}
+                            onPress={() => setActiveTab('favorite')}
+                        >
+                            <Text style={[styles.tabText, activeTab === 'favorite' && styles.activeTabText]}>
+                                Yêu thích
+                            </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            style={[styles.tab, activeTab === 'recent' && styles.activeTab]}
+                            onPress={() => setActiveTab('recent')}
+                        >
+                            <Text style={[styles.tabText, activeTab === 'recent' && styles.activeTabText]}>
+                                Gần đây
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                    
+                    {/* Recipe List */}
+                    {filteredRecipes.length > 0 ? (
+                        <Animated.FlatList
+                            data={filteredRecipes}
+                            renderItem={renderRecipeItem}
+                            keyExtractor={item => item.id}
+                            contentContainerStyle={styles.listContainer}
+                            showsVerticalScrollIndicator={false}
+                            onScroll={Animated.event(
+                                [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                                { useNativeDriver: true }
+                            )}
+                            scrollEventThrottle={16}
+                        />
+                    ) : (
+                        <ScrollView contentContainerStyle={styles.scrollContainer}>
+                            {renderEmptyState()}
+                        </ScrollView>
                     )}
-                    scrollEventThrottle={16}
-                />
-            ) : (
-                <ScrollView contentContainerStyle={styles.scrollContainer}>
-                    {renderEmptyState()}
-                </ScrollView>
-            )}
-            
-            {/* Floating Action Button */}
-            <TouchableOpacity
-                style={styles.floatingButton}
-                onPress={() => navigation.navigate('AddRecipe')}
-                activeOpacity={0.8}
-                disabled={isDrawerOpen}
-            >
-                <Icon name="add" size={26} color="#FFF" />
-            </TouchableOpacity>
-            
-            {/* Drawer Overlay */}
-            {isDrawerOpen && (
-                <TouchableWithoutFeedback onPress={toggleDrawer}>
-                    <View style={styles.overlay} />
-                </TouchableWithoutFeedback>
-            )}
-            
-            {/* Drawer */}
-            <Animated.View style={[styles.drawer, { transform: [{ translateX: slideAnim }] }]}>
-                <View style={styles.drawerHeader}>
-                    <TouchableOpacity 
-                        style={styles.drawerProfile}
-                        onPress={() => {
-                            toggleDrawer();
-                            navigation.navigate('InfoCustomer');
-                        }}
+                    
+                    {/* Floating Action Button */}
+                    <TouchableOpacity
+                        style={styles.floatingButton}
+                        onPress={() => navigation.navigate('AddRecipe')}
+                        activeOpacity={0.8}
+                        disabled={isDrawerOpen}
                     >
-                        <Image source={{ uri: userInfo?.imageUri }} style={styles.drawerAvatar} />
-                        <View style={styles.drawerUserInfo}>
-                            <Text style={styles.drawerUserName}>{userInfo?.fullName}</Text>
-                            <Text style={styles.drawerUserEmail}>Xem hồ sơ của bạn</Text>
-                        </View>
+                        <Icon name="add" size={26} color="#FFF" />
                     </TouchableOpacity>
-                </View>
-                
-                <View style={styles.drawerDivider} />
-                
-                <View style={styles.drawerContent}>
-                    {renderDrawerItem("person-outline", "Bếp Cá Nhân", "InfoCustomer")}
-                    {renderDrawerItem("notifications-none", "Hoạt Động", "RecentDishesScreen")}
-                    {renderDrawerItem("bar-chart", "Thống Kê Bếp", "RecentDishesScreen")}
-                    {renderDrawerItem("access-time", "Món Đã Xem Gần Đây", "RecentDishesScreen")}
-                    {renderDrawerItem("settings", "Cài đặt", "Stings")}
-                    {renderDrawerItem("send", "Gửi Phản Hồi", "RecentDishesScreen")}
-                </View>
-                
-                <View style={styles.drawerFooter}>
-                    <TouchableOpacity style={styles.themeToggle}>
-                        <Icon name="brightness-2" size={22} color="#555" />
-                        <Text style={styles.themeToggleText}>Chế độ tối</Text>
-                        <View style={styles.toggleSwitch}>
-                            <View style={styles.toggleButton} />
+                    
+                    {/* Drawer Overlay */}
+                    {isDrawerOpen && (
+                        <TouchableWithoutFeedback onPress={toggleDrawer}>
+                            <View style={styles.overlay} />
+                        </TouchableWithoutFeedback>
+                    )}
+                    
+                    {/* Drawer */}
+                    <Animated.View style={[styles.drawer, { transform: [{ translateX: slideAnim }] }]}>
+                        <View style={styles.drawerHeader}>
+                            <TouchableOpacity 
+                                style={styles.drawerProfile}
+                                onPress={() => {
+                                    toggleDrawer();
+                                    navigation.navigate('InfoCustomer');
+                                }}
+                            >
+                                <Image source={{ uri: userInfo?.imageUri }} style={styles.drawerAvatar} />
+                                <View style={styles.drawerUserInfo}>
+                                    <Text style={styles.drawerUserName}>{userInfo?.fullName}</Text>
+                                    <Text style={styles.drawerUserEmail}>Xem hồ sơ của bạn</Text>
+                                </View>
+                            </TouchableOpacity>
                         </View>
-                    </TouchableOpacity>
+                        
+                        <View style={styles.drawerDivider} />
+                        
+                        <View style={styles.drawerContent}>
+                            {renderDrawerItem("person-outline", "Bếp Cá Nhân", "InfoCustomer")}
+                            {renderDrawerItem("notifications-none", "Hoạt Động", "RecentDishesScreen")}
+                            {renderDrawerItem("bar-chart", "Thống Kê Bếp", "RecentDishesScreen")}
+                            {renderDrawerItem("access-time", "Món Đã Xem Gần Đây", "RecentDishesScreen")}
+                            {renderDrawerItem("settings", "Cài đặt", "Stings")}
+                            {renderDrawerItem("send", "Gửi Phản Hồi", "RecentDishesScreen")}
+                        </View>
+                        
+                        <View style={styles.drawerFooter}>
+                            <TouchableOpacity style={styles.themeToggle}>
+                                <Icon name="brightness-2" size={22} color="#555" />
+                                <Text style={styles.themeToggleText}>Chế độ tối</Text>
+                                <View style={styles.toggleSwitch}>
+                                    <View style={styles.toggleButton} />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </Animated.View>
                 </View>
-            </Animated.View>
-        </View>
+            </SafeAreaView>
+        </>
     );
 };
 
 const styles = StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: '#FFFFFF',
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    },
     container: {
         flex: 1,
         backgroundColor: '#FFFFFF',
@@ -400,26 +406,11 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#555',
     },
-    headerBlur: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 120,
-        zIndex: 1,
-    },
-    absolute: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        bottom: 0,
-        right: 0,
-    },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: 16,
+        paddingVertical: 12,
         paddingHorizontal: 16,
         backgroundColor: '#FFFFFF',
         zIndex: 2,
@@ -429,6 +420,8 @@ const styles = StyleSheet.create({
         height: 40,
         borderRadius: 20,
         backgroundColor: '#F0F0F0',
+        borderWidth: 1,
+        borderColor: '#EEEEEE',
     },
     headerTitle: {
         fontSize: 20,
@@ -490,10 +483,14 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         elevation: 3,
         backgroundColor: '#FFFFFF',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
     },
     recipeItem: {
         width: '100%',
-        height: 220,
+        height: 200, // Reduced from 220
         borderRadius: 16,
         overflow: 'hidden',
     },
@@ -518,6 +515,9 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#FFFFFF',
         marginBottom: 8,
+        textShadowColor: 'rgba(0, 0, 0, 0.75)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
     recipeMetaContainer: {
         flexDirection: 'row',
@@ -539,6 +539,9 @@ const styles = StyleSheet.create({
     userName: {
         fontSize: 12,
         color: '#FFFFFF',
+        textShadowColor: 'rgba(0, 0, 0, 0.75)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
     statsContainer: {
         flexDirection: 'row',
@@ -548,6 +551,9 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#FFFFFF',
         marginLeft: 4,
+        textShadowColor: 'rgba(0, 0, 0, 0.75)',
+        textShadowOffset: { width: 0, height: 1 },
+        textShadowRadius: 2,
     },
     favoriteButton: {
         position: 'absolute',
@@ -565,10 +571,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         padding: 20,
+        marginTop: 40,
     },
     emptyImage: {
-        width: 200,
-        height: 200,
+        width: 180,
+        height: 180,
         marginBottom: 20,
     },
     emptyTitle: {
@@ -632,10 +639,12 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         zIndex: 3,
         elevation: 10,
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     },
     drawerHeader: {
         padding: 16,
-        paddingTop: 40,
+        paddingTop: 20,
+        backgroundColor: '#FAFAFA',
     },
     drawerProfile: {
         flexDirection: 'row',
@@ -645,6 +654,8 @@ const styles = StyleSheet.create({
         width: 50,
         height: 50,
         borderRadius: 25,
+        borderWidth: 1,
+        borderColor: '#EEEEEE',
     },
     drawerUserInfo: {
         marginLeft: 12,
@@ -673,6 +684,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 12,
         paddingHorizontal: 16,
+        borderRadius: 8,
+        marginHorizontal: 8,
+        marginBottom: 4,
     },
     drawerIconContainer: {
         width: 36,

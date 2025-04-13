@@ -13,13 +13,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
-  ActivityIndicator
+  ActivityIndicator,
+  SafeAreaView
 } from 'react-native';
-import { MaterialIcons } from 'react-native-vector-icons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import firestore from '@react-native-firebase/firestore';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useMyContextController } from "../store";
-import { BlurView } from '@react-native-community/blur';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -40,13 +40,6 @@ const ChatScreen = ({ route, navigation }) => {
   const inputRef = useRef(null);
   const scrollY = useRef(new Animated.Value(0)).current;
   const attachmentHeight = useRef(new Animated.Value(0)).current;
-  
-  // Animation for header opacity based on scroll
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [0, 50],
-    outputRange: [0, 1],
-    extrapolate: 'clamp',
-  });
 
   useEffect(() => {
     if (!userId || !receiverId) {
@@ -314,137 +307,140 @@ const ChatScreen = ({ route, navigation }) => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#FF6B00" />
-        <Text style={styles.loadingText}>Đang tải tin nhắn...</Text>
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FF6B00" />
+          <Text style={styles.loadingText}>Đang tải tin nhắn...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : null}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-    >
-      <StatusBar backgroundColor="#FFFFFF" barStyle="dark-content" />
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar backgroundColor="transparent" translucent barStyle="dark-content" />
       
-      {/* Header with blur effect on scroll */}
-      <Animated.View style={[styles.headerBlur, { opacity: headerOpacity }]}>
-        <BlurView
-          style={styles.absolute}
-          blurType="light"
-          blurAmount={20}
-        />
-      </Animated.View>
-      
-      {/* Main Header */}
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-          activeOpacity={0.7}
-        >
-          <MaterialIcons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.headerProfile}
-          onPress={() => navigation.navigate('InfoCustomer', { userId: receiverId })}
-          activeOpacity={0.8}
-        >
-          <Image 
-            source={{ uri: receiverInfo?.imageUri }} 
-            style={styles.headerAvatar} 
-          />
-          <View style={styles.headerInfo}>
-            <Text style={styles.headerName}>{receiverName}</Text>
-            <Text style={styles.headerStatus}>
-              {isTyping ? 'Đang nhập...' : isOnline ? 'Đang hoạt động' : 'Không hoạt động'}
-            </Text>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : null}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
+        {/* Main Header */}
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+            activeOpacity={0.7}
+          >
+            <MaterialIcons name="arrow-back" size={24} color="#333" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.headerProfile}
+            onPress={() => navigation.navigate('InfoCustomer', { userId: receiverId })}
+            activeOpacity={0.8}
+          >
+            <Image 
+              source={{ uri: receiverInfo?.imageUri }} 
+              style={styles.headerAvatar} 
+            />
+            <View style={styles.headerInfo}>
+              <Text style={styles.headerName}>{receiverName}</Text>
+              <Text style={[
+                styles.headerStatus,
+                isTyping ? styles.typingStatus : isOnline ? styles.onlineStatus : styles.offlineStatus
+              ]}>
+                {isTyping ? 'Đang nhập...' : isOnline ? 'Đang hoạt động' : 'Không hoạt động'}
+              </Text>
+            </View>
+          </TouchableOpacity>
+          
+          <View style={styles.headerActions}>
+            <TouchableOpacity style={styles.headerAction}>
+              <MaterialIcons name="call" size={22} color="#333" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerAction}>
+              <MaterialIcons name="videocam" size={22} color="#333" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerAction}>
+              <MaterialIcons name="more-vert" size={22} color="#333" />
+            </TouchableOpacity>
           </View>
-        </TouchableOpacity>
-        
-        <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.headerAction}>
-            <MaterialIcons name="call" size={22} color="#333" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerAction}>
-            <MaterialIcons name="videocam" size={22} color="#333" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerAction}>
-            <MaterialIcons name="more-vert" size={22} color="#333" />
-          </TouchableOpacity>
-        </View>
-      </View>
-      
-      {/* Messages List */}
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={renderMessage}
-        contentContainerStyle={styles.messageList}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: false }
-        )}
-        scrollEventThrottle={16}
-      />
-      
-      {/* Attachment Options */}
-      {renderAttachmentOptions()}
-      
-      {/* Input Area */}
-      <View style={styles.inputContainer}>
-        <TouchableOpacity 
-          style={styles.attachButton}
-          onPress={toggleAttachmentOptions}
-          activeOpacity={0.7}
-        >
-          <MaterialIcons 
-            name={showAttachmentOptions ? "close" : "attach-file"} 
-            size={24} 
-            color="#777" 
-          />
-        </TouchableOpacity>
-        
-        <View style={styles.inputWrapper}>
-          <TextInput
-            ref={inputRef}
-            style={styles.messageInput}
-            placeholder="Nhập tin nhắn..."
-            value={newMessage}
-            onChangeText={setNewMessage}
-            multiline
-          />
-          <TouchableOpacity style={styles.emojiButton}>
-            <MaterialIcons name="emoji-emotions" size={24} color="#777" />
-          </TouchableOpacity>
         </View>
         
-        {newMessage.trim() ? (
+        {/* Messages List */}
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          keyExtractor={(item, index) => index.toString()}
+          renderItem={renderMessage}
+          contentContainerStyle={styles.messageList}
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+            { useNativeDriver: false } // Thay đổi thành false để khắc phục lỗi
+          )}
+          scrollEventThrottle={16}
+        />
+        
+        {/* Attachment Options */}
+        {renderAttachmentOptions()}
+        
+        {/* Input Area */}
+        <View style={styles.inputContainer}>
           <TouchableOpacity 
-            style={styles.sendButton}
-            onPress={sendMessage}
+            style={styles.attachButton}
+            onPress={toggleAttachmentOptions}
             activeOpacity={0.7}
           >
-            <MaterialIcons name="send" size={22} color="#FFF" />
+            <MaterialIcons 
+              name={showAttachmentOptions ? "close" : "attach-file"} 
+              size={24} 
+              color="#777" 
+            />
           </TouchableOpacity>
-        ) : (
-          <TouchableOpacity 
-            style={styles.micButton}
-            activeOpacity={0.7}
-          >
-            <MaterialIcons name="mic" size={24} color="#777" />
-          </TouchableOpacity>
-        )}
-      </View>
-    </KeyboardAvoidingView>
+          
+          <View style={styles.inputWrapper}>
+            <TextInput
+              ref={inputRef}
+              style={styles.messageInput}
+              placeholder="Nhập tin nhắn..."
+              value={newMessage}
+              onChangeText={setNewMessage}
+              multiline
+            />
+            <TouchableOpacity style={styles.emojiButton}>
+              <MaterialIcons name="emoji-emotions" size={24} color="#777" />
+            </TouchableOpacity>
+          </View>
+          
+          {newMessage.trim() ? (
+            <TouchableOpacity 
+              style={styles.sendButton}
+              onPress={sendMessage}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons name="send" size={22} color="#FFF" />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity 
+              style={styles.micButton}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons name="mic" size={24} color="#777" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
@@ -460,21 +456,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#555',
   },
-  headerBlur: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 70,
-    zIndex: 1,
-  },
-  absolute: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    right: 0,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -482,7 +463,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     backgroundColor: '#FFFFFF',
     elevation: 2,
-    zIndex: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   backButton: {
     padding: 4,
@@ -498,6 +482,8 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     backgroundColor: '#F0F0F0',
+    borderWidth: 1,
+    borderColor: '#EEEEEE',
   },
   headerInfo: {
     marginLeft: 12,
@@ -509,7 +495,15 @@ const styles = StyleSheet.create({
   },
   headerStatus: {
     fontSize: 12,
+  },
+  onlineStatus: {
     color: '#4CAF50',
+  },
+  offlineStatus: {
+    color: '#9E9E9E',
+  },
+  typingStatus: {
+    color: '#2196F3',
   },
   headerActions: {
     flexDirection: 'row',
@@ -556,6 +550,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
     alignSelf: 'flex-end',
     marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#EEEEEE',
   },
   messageBubble: {
     padding: 12,
@@ -570,6 +566,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 4,
     elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 1,
   },
   messageText: {
     fontSize: 16,
@@ -600,6 +600,8 @@ const styles = StyleSheet.create({
   attachmentContainer: {
     backgroundColor: '#F5F5F5',
     overflow: 'hidden',
+    borderTopWidth: 1,
+    borderTopColor: '#EEEEEE',
   },
   attachmentOptions: {
     flexDirection: 'row',
@@ -661,6 +663,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#FF6B00',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   micButton: {
     padding: 8,
